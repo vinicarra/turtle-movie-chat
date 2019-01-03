@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "431690607119",
+    "firebase_url": "https://turtle-movie-chat-75d09.firebaseio.com",
+    "project_id": "turtle-movie-chat-75d09",
+    "storage_bucket": "turtle-movie-chat-75d09.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431690607119:android:12ff2174101e7ece",
+        "android_client_info": {
+          "package_name": "com.turtle_movie_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "431690607119-h566i0gdet3b1rnbn6rk16sosglpfj4m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA69PL2OZyZoww33OzI6Mn__pwEndqlebQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

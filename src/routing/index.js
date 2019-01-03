@@ -1,14 +1,14 @@
 import { createStackNavigator, createAppContainer } from "react-navigation";
-import MoviesListScreen from '../screens/MoviesListScreen';
+import MovieListScreen from '../screens/MovieListScreen';
 import MovieCommentsScreen from '../screens/MovieCommentsScreen';
 
 const mainStack = createStackNavigator(
     {
-        MoviesList: MoviesListScreen,
+        MovieList: MovieListScreen,
         MovieComments: MovieCommentsScreen,
     },
     {
-        initialRouteName: 'MoviesList',
+        initialRouteName: 'MovieList',
     },
 );
 
