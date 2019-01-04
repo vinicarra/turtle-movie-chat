@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
-import { Container, ListItem, Content, Text, Body, Input, Item, View, Left, Right, Icon, Picker, Grid } from 'native-base';
+import { Platform } from 'react-native';
+import { Container, ListItem, Text, Body, Input, Item, View, Left, Right, Icon, Picker } from 'native-base';
 import { FlatList } from 'react-native';
+import { connect } from 'react-redux';
+import { fetchMovies } from '../actions/MoviesActions';
 
 const Order = {
   NONE: 'none',
@@ -17,102 +20,13 @@ class MovieListScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      originalMovies: [{
-        "year": "2014",
-        "votes": "757074",
-        "title": "Guardians of the Galaxy",
-        "runtime": "121",
-        "revenue": "333.13",
-        "rating": "8.1",
-        "rank": "1",
-        "metascore": "76",
-        "genre": [
-        "Action",
-        "Adventure",
-        "Sci-Fi"
-        ],
-        "director": "James Gunn",
-        "description": "A group of intergalactic criminals are forced to work together to stop a fanatical warrior from taking control of the universe.",
-        "actors": [
-        "Chris Pratt",
-        "Vin Diesel",
-        "Bradley Cooper",
-        "Zoe Saldana"
-        ]
-        },
-        {
-          "year": "2012",
-          "votes": "485820",
-          "title": "Prometheus",
-          "runtime": "124",
-          "revenue": "126.46",
-          "rating": "10",
-          "rank": "2",
-          "metascore": "65",
-          "genre": [
-          "Adventure",
-          "Mystery",
-          "Sci-Fi"
-          ],
-          "director": "Ridley Scott",
-          "description": "Following clues to the origin of mankind, a team finds a structure on a distant moon, but they soon realize they are not alone.",
-          "actors": [
-          "Noomi Rapace",
-          "Logan Marshall-Green",
-          "Michael Fassbender",
-          "Charlize Theron"
-          ]
-          },
-      ],
-      filteredMovies: [{
-        "year": "2014",
-        "votes": "757074",
-        "title": "Guardians of the Galaxy",
-        "runtime": "121",
-        "revenue": "333.13",
-        "rating": "8.1",
-        "rank": "1",
-        "metascore": "76",
-        "genre": [
-        "Action",
-        "Adventure",
-        "Sci-Fi"
-        ],
-        "director": "James Gunn",
-        "description": "A group of intergalactic criminals are forced to work together to stop a fanatical warrior from taking control of the universe.",
-        "actors": [
-        "Chris Pratt",
-        "Vin Diesel",
-        "Bradley Cooper",
-        "Zoe Saldana"
-        ],
-        },
-        {
-          "year": "2012",
-          "votes": "485820",
-          "title": "Prometheus",
-          "runtime": "124",
-          "revenue": "126.46",
-          "rating": "10.0",
-          "rank": "2",
-          "metascore": "65",
-          "genre": [
-          "Adventure",
-          "Mystery",
-          "Sci-Fi"
-          ],
-          "director": "Ridley Scott",
-          "description": "Following clues to the origin of mankind, a team finds a structure on a distant moon, but they soon realize they are not alone.",
-          "actors": [
-          "Noomi Rapace",
-          "Logan Marshall-Green",
-          "Michael Fassbender",
-          "Charlize Theron"
-          ]
-          },
-      ],
       orderBy: null,
+      filterText: '',
     }
+  }
+
+  componentDidMount() {
+    this.props.fetchMovies();
   }
 
   renderItem = ({ item }) => {
@@ -132,7 +46,6 @@ class MovieListScreen extends Component {
   }
 
   compareYear = (a, b) => {
-    console.log(parseInt(b.year));
     if (a.year > b.year)
       return -1;
     if (a.year < b.year)
@@ -158,12 +71,13 @@ class MovieListScreen extends Component {
     return 0;
   }
 
-  filter = (text = null) => {
-    const { originalMovies, orderBy } = this.state;
-    const originalMoviesBuffer = originalMovies.slice();
+  filter = () => {
+    const { orderBy, filterText } = this.state;
+    const { movies } = this.props;
+    const moviesBuffer = movies.slice();
 
-    if (!text && !orderBy) {
-      this.setState({ filteredMovies: originalMovies });
+    if (!filterText && !orderBy) {
+      this.setState({ filteredMovies: moviesBuffer });
       return;
     }
 
@@ -171,35 +85,42 @@ class MovieListScreen extends Component {
 
     switch(orderBy) {
       case Order.RATING: {
-        filteredArray = originalMoviesBuffer.sort(this.compareRating);
+        filteredArray = moviesBuffer.sort(this.compareRating);
         break;
       }
       case Order.VOTES: {
-        filteredArray = originalMoviesBuffer.sort(this.compareVotes);
+        filteredArray = moviesBuffer.sort(this.compareVotes);
         break;
       }
       case Order.YEAR: {
-        filteredArray = originalMoviesBuffer.sort(this.compareYear);
+        filteredArray = moviesBuffer.sort(this.compareYear);
         break;
       }
       default: {
-        filteredArray = originalMoviesBuffer;
+        filteredArray = moviesBuffer;
         break;
       }
     }
 
-    if (text) {
+    if (filterText) {
       filteredArray = filteredArray.filter(item => (
-        item.title.toLowerCase().includes(text.toLowerCase())
+        item.title.toLowerCase().includes(filterText.toLowerCase())
       ));
     }
     
     this.setState({ filteredMovies: filteredArray });
   }
 
-  onValueChange = async (value) => {
+  onPickerChange = async (value) => {
     await this.setState({
-      orderBy: value
+      orderBy: value,
+    });
+    this.filter();
+  }
+
+  onChangeText = async (text) => {
+    await this.setState({
+      filterText: text,
     });
     this.filter();
   }
@@ -207,39 +128,49 @@ class MovieListScreen extends Component {
   render() {
     return (
       <Container>
-        <Content>
+        <View>
           <View padder>
             <Item rounded style={{ paddingHorizontal: 8 }}>
               <Input
                 clearButtonMode={'while-editing'}
                 placeholder={'Search for a movie'}
-                onChangeText={this.filter}
+                onChangeText={this.onChangeText}
               />
               <Icon active name='search'/>
             </Item>
           </View>
-            <Picker
-              mode="dropdown"
-              placeholder={'Order by'}
-              iosIcon={<Icon name="ios-arrow-down" />}
-              style={{ alignSelf: 'flex-end' }}
-              selectedValue={this.state.orderBy}
-              onValueChange={this.onValueChange}
-            >
-              <Picker.Item label="None" value={Order.NONE} />
-              <Picker.Item label="Rating" value={Order.RATING} />
-              <Picker.Item label="Year" value={Order.YEAR} />
-              <Picker.Item label="Votes" value={Order.VOTES} />
-            </Picker>
+          <Picker
+            mode="dropdown"
+            placeholder={'Order by'}
+            iosIcon={<Icon name="ios-arrow-down" />}
+            style={{ width: (Platform.OS === 'ios') ? undefined : 120, alignSelf: 'flex-end' }}
+            selectedValue={this.state.orderBy}
+            onValueChange={this.onPickerChange}
+          >
+            <Picker.Item label="None" value={Order.NONE} />
+            <Picker.Item label="Rating" value={Order.RATING} />
+            <Picker.Item label="Year" value={Order.YEAR} />
+            <Picker.Item label="Votes" value={Order.VOTES} />
+          </Picker>
           <FlatList
-            data={this.state.filteredMovies}
-            renderItem={this.renderItem}
+            getItemLayout={(data, index) => (
+              {length: 90, offset: 90 * index, index}
+            )}          
             keyExtractor={(item, index) => index.toString()}
+            data={this.state.filteredMovies || this.props.movies}
+            renderItem={this.renderItem}
+            onRefresh={() => this.props.fetchMovies()}
+            refreshing={this.props.fetchingMovies}
           />
-        </Content>
+        </View>
       </Container>
     );
   }
 }
 
-export default MovieListScreen;
+const mapStateToProps = (state) => ({
+  movies: state.MoviesReducer.movies,
+  fetchingMovies: state.MoviesReducer.fetchingMovies,
+});
+
+export default connect(mapStateToProps, { fetchMovies })(MovieListScreen);
