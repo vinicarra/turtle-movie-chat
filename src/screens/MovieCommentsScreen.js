@@ -3,9 +3,9 @@ import { FlatList, KeyboardAvoidingView } from 'react-native';
 import { connect } from 'react-redux';
 import moment from 'moment';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, Container, ListItem, Thumbnail, Left, H3, Body, Button, Item, Input, Grid, Col, Icon } from 'native-base';
-
-const comment = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent auctor, libero a ultrices molestie, eros leo posuere erat, in elementum ex mauris at elit. In diam ex, hendrerit sed posuere sed, porttitor eget ipsum. Nulla id tincidunt lectus. In pretium accumsan convallis. Ut imperdiet lobortis euismod. Vestibulum vel diam vel velit aliquam varius. Donec ut erat pretium, sagittis mi at, viverra est. Curabitur malesuada sit amet ligula eget sagittis. Proin malesuada suscipit enim. Aliquam euismod velit nibh, ac efficitur nulla iaculis sit amet. Integer id rutrum orci. Etiam sit amet porta dui, nec tristique sem. Nullam porta erat urna, sed feugiat nulla consectetur at. Vestibulum mauris risus, accumsan ac magna ut, rhoncus iaculis libero.';
+import { View, Text, Container, ListItem, Thumbnail, 
+  Left, H3, Body, Button, Item, Input, Grid, Col, Icon } from 'native-base';
+import { fetchComments } from '../actions/MoviesActions';
 
 class MovieCommentsScreen extends Component {
   static navigationOptions = ({ navigation }) => {
@@ -16,20 +16,18 @@ class MovieCommentsScreen extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      comments: [
-        { author: 'John', comment, timestamp: new Date().setMinutes(20) },
-        { author: 'John', comment, timestamp: new Date().setMinutes(10) },
-        { author: 'John', comment, timestamp: new Date().setMinutes(40) },
-      ]
-    }
+  }
+
+  componentDidMount() {
+    const movie = this.props.navigation.getParam('movie');
+    this.props.fetchComments({ title: movie.title });
   }
 
   renderItem = ({ item }) => {
     return (
       <ListItem avatar>
         <Left>
-          <Thumbnail small source={{ uri: 'https://i.pinimg.com/originals/be/ac/96/beac96b8e13d2198fd4bb1d5ef56cdcf.jpg' }} />
+          <Thumbnail small source={{ uri: item.profilePic }} />
         </Left>
         <Body>
           <View>
@@ -46,39 +44,57 @@ class MovieCommentsScreen extends Component {
     );
   }
 
+  empty = () => {
+    if (this.props.fetchingComments) {
+      return null;
+    }
+    return (
+      <View padder>
+        <H3 style={{ alignSelf: 'center', textAlign: 'center' }}>
+          There are no comments yet, be the first!
+        </H3>
+      </View>
+    );
+  }
+
   render() {
+    const movie = this.props.navigation.getParam('movie');
     return (
       <KeyboardAwareScrollView contentContainerStyle={{ flex: 1, }}>
-      <Container>
-        <View style={{ flex: 1, }}>
-          <FlatList
-            data={this.state.comments}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={this.renderItem}
-          />
-        </View>
-        <View padder style={{ width: '100%', flexDirection: 'row' }}>
-          <Grid>
-            <Col size={5}>
-              <Item rounded style={{ paddingHorizontal: 8 }}>
-                <Input placeholder={'Type a comment'} />
-              </Item>
-            </Col>
-            <Col size={1} style={{ justifyContent: 'center' }}>
-              <Button rounded style={{ alignSelf: 'flex-end' }}>
-                <Icon ios="ios-send" android="md-send" />
-              </Button>
-            </Col>
-          </Grid>
-        </View>
-      </Container>
+        <Container>
+          <View style={{ flex: 1, }}>
+            <FlatList
+              data={this.props.comments}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={this.renderItem}
+              onRefresh={() => this.props.fetchComments({ title: movie.title })}
+              refreshing={this.props.fetchingComments}
+              ListEmptyComponent={this.empty}
+            />
+          </View>
+          <View padder style={{ width: '100%', flexDirection: 'row' }}>
+            <Grid>
+              <Col size={5}>
+                <Item rounded style={{ paddingHorizontal: 8 }}>
+                  <Input placeholder={'Type a comment'} />
+                </Item>
+              </Col>
+              <Col size={1} style={{ justifyContent: 'center' }}>
+                <Button rounded style={{ alignSelf: 'flex-end' }}>
+                  <Icon ios="ios-send" android="md-send" />
+                </Button>
+              </Col>
+            </Grid>
+          </View>
+        </Container>
       </KeyboardAwareScrollView>
     );
   }
 }
 
 const mapStateToprops = (state) => ({
-
+  comments: state.MoviesReducer.comments,
+  fetchingComments: state.MoviesReducer.fetchingComments,
 });
 
-export default connect(mapStateToprops, null)(MovieCommentsScreen);
+export default connect(mapStateToprops, { fetchComments })(MovieCommentsScreen);

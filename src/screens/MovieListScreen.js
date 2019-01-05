@@ -32,7 +32,7 @@ class MovieListScreen extends Component {
   renderItem = ({ item }) => {
     const { navigation } = this.props;
     return (
-      <ListItem onPress={() => navigation.push('MovieComments', { movie: item })}>
+      <ListItem onPress={() => navigation.navigate('MovieComments', { movie: item })}>
           <Left>
             <Body>
               <Text>{item.title} ({item.year})</Text>
