@@ -30,8 +30,9 @@ class MovieListScreen extends Component {
   }
 
   renderItem = ({ item }) => {
+    const { navigation } = this.props;
     return (
-      <ListItem>
+      <ListItem onPress={() => navigation.push('MovieComments', { movie: item })}>
           <Left>
             <Body>
               <Text>{item.title} ({item.year})</Text>
@@ -104,7 +105,7 @@ class MovieListScreen extends Component {
 
     if (filterText) {
       filteredArray = filteredArray.filter(item => (
-        item.title.toLowerCase().includes(filterText.toLowerCase())
+        item.title.toLowerCase().includes(filterText.toLowerCase().trim())
       ));
     }
     
@@ -128,7 +129,7 @@ class MovieListScreen extends Component {
   render() {
     return (
       <Container>
-        <View>
+        <View style={{ flex: 1, }}>
           <View padder>
             <Item rounded style={{ paddingHorizontal: 8 }}>
               <Input
