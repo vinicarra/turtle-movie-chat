@@ -5,7 +5,7 @@ import moment from 'moment';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, Container, ListItem, Thumbnail, 
   Left, H3, Body, Button, Item, Input, Grid, Col, Icon } from 'native-base';
-import { fetchComments } from '../actions/MoviesActions';
+import { fetchComments, editCommentText, addComment } from '../actions/MoviesActions';
 
 class MovieCommentsScreen extends Component {
   static navigationOptions = ({ navigation }) => {
@@ -24,6 +24,9 @@ class MovieCommentsScreen extends Component {
   }
 
   renderItem = ({ item }) => {
+    if (this.props.fetchingComments) {
+      return null;
+    }
     return (
       <ListItem avatar>
         <Left>
@@ -50,17 +53,29 @@ class MovieCommentsScreen extends Component {
     }
     return (
       <View padder>
-        <H3 style={{ alignSelf: 'center', textAlign: 'center' }}>
+        <Text style={{ fontSize: 18, alignSelf: 'center', textAlign: 'center' }}>
           There are no comments yet, be the first!
-        </H3>
+        </Text>
       </View>
     );
+  }
+
+  onChangeText = (text) => {
+    this.props.editCommentText({ text });
+  }
+
+  sendComment = () => {
+    const { comment, addComment } = this.props;
+    const movie = this.props.navigation.getParam('movie');
+    if (comment) {
+      addComment({ comment, title: movie.title });
+    }
   }
 
   render() {
     const movie = this.props.navigation.getParam('movie');
     return (
-      <KeyboardAwareScrollView contentContainerStyle={{ flex: 1, }}>
+      <KeyboardAwareScrollView keyboardShouldPersistTaps={'always'} contentContainerStyle={{ flex: 1, }}>
         <Container>
           <View style={{ flex: 1, }}>
             <FlatList
@@ -76,11 +91,21 @@ class MovieCommentsScreen extends Component {
             <Grid>
               <Col size={5}>
                 <Item rounded style={{ paddingHorizontal: 8 }}>
-                  <Input placeholder={'Type a comment'} />
+                  <Input
+                    placeholder={'Type a comment'}
+                    value={this.props.comment}
+                    onChangeText={this.onChangeText}
+                    disabled={this.props.addingComment}
+                  />
                 </Item>
               </Col>
               <Col size={1} style={{ justifyContent: 'center' }}>
-                <Button rounded style={{ alignSelf: 'flex-end' }}>
+                <Button
+                  disabled={this.props.addingComment}
+                  onPress={this.sendComment} 
+                  rounded
+                  style={{ alignSelf: 'flex-end' }}
+                >
                   <Icon ios="ios-send" android="md-send" />
                 </Button>
               </Col>
@@ -94,7 +119,9 @@ class MovieCommentsScreen extends Component {
 
 const mapStateToprops = (state) => ({
   comments: state.MoviesReducer.comments,
+  comment: state.MoviesReducer.comment,
+  addingComment: state.MoviesReducer.addingComment,
   fetchingComments: state.MoviesReducer.fetchingComments,
 });
 
-export default connect(mapStateToprops, { fetchComments })(MovieCommentsScreen);
+export default connect(mapStateToprops, { fetchComments, editCommentText, addComment })(MovieCommentsScreen);
